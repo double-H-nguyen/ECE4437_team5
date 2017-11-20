@@ -577,9 +577,9 @@ void PID(int RightValue, int FrontValue) {
         GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_6, GPIO_PIN_6); //forward
 
         PWMPulseWidthSet(PWM1_BASE, PWM_OUT_2, 99 * PWM_LOAD / 100); //left
-        PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 17 * PWM_LOAD / 100); //right slow
+        PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 25 * PWM_LOAD / 100); //right slow
         //UARTprintf("************************RIGHT************************\n");
-        SysCtlDelay(500);
+        //SysCtlDelay(500);
     }
     else if ((pidRight > -20) && (pidRight < 20) && (FrontValue < 1800))// Go straight
     {
@@ -694,7 +694,7 @@ void Timer3IntHandler(void) {
     while(true) {
 
         UARTprintf("\n");
-        UARTprintf("Version 9.1\n");
+        UARTprintf("Version 10.1\n");
         UARTprintf("The folliwng is a list of commands:\n"
                 "DS - run distance sensor test\n"
                 "MS - test motors\n"
@@ -715,7 +715,7 @@ void Timer3IntHandler(void) {
         if (!strcmp(command, "PD"))    // Start
         {
             PWMOutputState(PWM1_BASE, PWM_OUT_2_BIT | PWM_OUT_3_BIT, true);
-            /* Initialize timer */
+            /* Initialize RTOS */
             BIOS_start();
         }
     }
