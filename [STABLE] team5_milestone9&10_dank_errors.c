@@ -2,10 +2,10 @@
  *************************************************************************************************************
  * TO RUN THIS FILE, YOU NEED TO HAVE THESE RTOS PRODUCTS ENABLED
  *
- * CLK: period = 10000 (us)
- * {{Buffer_Clk | Timer1IntHandler | 1 | 200 }}
- * {{Light_Clk | Timer3IntHandler | 1 | 1 }}
- * {{PID_Clk | Timer2IntHandler | 1 | 5 }}
+ * CLK: period = 10000 (us) | ANY | Timer Interrupt Every Period | SWI priority = 15
+ * {{ Buffer_Clk | Timer1IntHandler | 1 | 200 | DO NOT start at boot time }}
+ * {{ Light_Clk | Timer3IntHandler | 1 | 1 | start at boot time }}
+ * {{ PID_Clk | Timer2IntHandler | 1 | 5 | start at boot time }}
  *************************************************************************************************************
  */
 
