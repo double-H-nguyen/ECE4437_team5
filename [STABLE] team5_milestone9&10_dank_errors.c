@@ -2,7 +2,7 @@
  *************************************************************************************************************
  * TO RUN THIS FILE, YOU NEED TO HAVE THESE RTOS PRODUCTS ENABLED
  *
- * CLK: period = 10000 (us) | ANY | Timer Interrupt Every Period | SWI priority = 15
+ * CLK: period = 10000 (us)| ANY | Timer Interrupt Every Period | SWI priority = 15
  * {{ Buffer_Clk | Timer1IntHandler | 1 | 200 | DO NOT start at boot time }}
  * {{ Light_Clk | Timer3IntHandler | 1 | 1 | start at boot time }}
  * {{ PID_Clk | Timer2IntHandler | 1 | 5 | start at boot time }}
@@ -258,6 +258,10 @@ void ConfigurePWM(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM1);
 
+    /* LEDs for reading data (not related to PWM) */
+    //configuring blue and green LEDs
+    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3);
+
     //Phase pins and mode
     GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1);
     GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_6|GPIO_PIN_7);
@@ -478,6 +482,9 @@ void Timer1IntHandler(void) {
 
     if (swap == 0) {
 
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3, 0); //reset LEDs
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3); //constant green LED to signal that it's transmitting to PC
+
         UARTprintf(": ");
         for (j = 0; j < BUFFER_SIZE; ++j) {
             UARTprintf("%X, ", buffer[j]);
@@ -489,9 +496,14 @@ void Timer1IntHandler(void) {
         UARTprintf("\r\n\n");
 
         swap = 1;
+
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3, 0); //reset LEDs
     }
 
     else if (swap == 1) {
+
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3, 0); //reset
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3); //constant green LED to signal that it's transmitting to PC
 
         UARTprintf(": ");
         for (j = 0; j < BUFFER_SIZE; ++j) {
@@ -504,6 +516,8 @@ void Timer1IntHandler(void) {
         UARTprintf("\r\n\n");
 
         swap = 0;
+
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3, 0); //reset LEDs
     }
 
     i = 0;
@@ -613,6 +627,10 @@ void PID(int RightValue, int FrontValue) {
 
     /*calculates error and stores in buffer */
     if ((error_count % 2) == 0) { //only runs every 100ms
+        
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3, 0); //reset LEDs
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2); //constant blue LED to signal that it's collecting data
+        
         error = RightValue - 1900; //error = measured distance - desired distance
         //makes sure error is positive
         if (error < 0) {
@@ -634,6 +652,8 @@ void PID(int RightValue, int FrontValue) {
         ++i;
         ++bufferCt;
         error_count = 0;
+        
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2|GPIO_PIN_3, 0); //reset LEDs
     }
     error_count += 1;
 }
@@ -706,11 +726,11 @@ void Timer3IntHandler(void) {
     while(true) {
 
         UARTprintf("\n");
-        UARTprintf("Version 10.1\n");
+        UARTprintf("Version 10.2\n");
         UARTprintf("The folliwng is a list of commands:\n"
                 "DS - run distance sensor test\n"
                 "MS - test motors\n"
-                "PD - PID test\n");
+                "GO - Run Maze\n");
         UARTgets(command, strlen(command) + 1);
         UARTprintf("\n");
 
@@ -724,7 +744,7 @@ void Timer3IntHandler(void) {
             PWMOutputState(PWM1_BASE, PWM_OUT_2_BIT | PWM_OUT_3_BIT, true);
             motorTest();
         }
-        if (!strcmp(command, "PD"))    // Start
+        if (!strcmp(command, "GO"))    // Start
         {
             PWMOutputState(PWM1_BASE, PWM_OUT_2_BIT | PWM_OUT_3_BIT, true);
             /* Initialize RTOS */
